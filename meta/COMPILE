@@ -1,0 +1,18 @@
+
+# Compile
+
+Makefile
+```
+INSTALL_TOP= /opt/lua
+```
+
+src/Makefile
+```
+MYCFLAGS=-fPIC -I/opt/readline/include -I/opt/termcap/include
+MYLDFLAGS=-L/opt/readline/lib -L/opt/termcap/lib
+MYLIBS=-ltermcap
+```
+
+make linux
+make install
+
