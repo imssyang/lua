@@ -1,18 +1,65 @@
+#
+# http://www.linuxfromscratch.org/blfs/view/svn/general/lua52.html
+#
+# pkgconfig/lua.pc
+cat > lua.pc << "EOF"
+V=5.2
+R=5.2.4
+
+prefix=/usr
+INSTALL_BIN=${prefix}/bin
+INSTALL_INC=${prefix}/include/lua5.2
+INSTALL_LIB=${prefix}/lib
+INSTALL_MAN=${prefix}/share/man/man1
+INSTALL_LMOD=${prefix}/share/lua/${V}
+INSTALL_CMOD=${prefix}/lib/lua/${V}
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include/lua5.2
+
+Name: Lua
+Description: An Extensible Extension Language
+Version: ${R}
+Requires:
+Libs: -L${libdir} -llua -lm -ldl
+Cflags: -I${includedir}
+EOF
+
+
+# modify source
+cd lua-5.2.4
+patch -Np1 -i /opt/lua/meta/lua-5.2.4-shared_library-1.patch
+sed -i '/#define LUA_ROOT/s:/usr/local/:/opt/lua/:' src/luaconf.h
+
+#sed -r -e '/^LUA_(SO|A|T)=/ s/lua/lua5.2/' \
+#    -e '/^LUAC_T=/ s/luac/luac5.2/'     \
+#    -i src/Makefile
+#vim Makefile
+#    INSTALL_TOP= /opt/lua
+#vim src/Makefile
+#    MYCFLAGS=-fPIC -I/opt/readline/include -I/opt/termcap/include
+#    MYLDFLAGS=-L/opt/readline/lib -L/opt/termcap/lib
+#    MYLIBS=-ltermcap
 
 # Compile
+make MYCFLAGS="-fPIC -I/opt/readline/include -I/opt/termcap/include" \
+     MYLDFLAGS="-L/opt/readline/lib -L/opt/termcap/lib" \
+     MYLIBS="-ltermcap" \
+     linux
 
-Makefile
-```
-INSTALL_TOP= /opt/lua
-```
+# Install
+make TO_BIN='lua luac' \
+     TO_LIB="liblua.so liblua.so.5.2 liblua.so.5.2.4" \
+     INSTALL_DATA="cp -d" \
+     INSTALL_TOP=/opt/lua \
+     INSTALL_INC=/opt/lua/include \
+     INSTALL_MAN=/opt/lua/share/man/man1 \
+     install
 
-src/Makefile
-```
-MYCFLAGS=-fPIC -I/opt/readline/include -I/opt/termcap/include
-MYLDFLAGS=-L/opt/readline/lib -L/opt/termcap/lib
-MYLIBS=-ltermcap
-```
+rm -rf /opt/lua/share/lua
+rm -rf /opt/lua/lib/lua
+mkdir /opt/lua/share/doc
+cp -v doc/*.{html,css,gif,png} /opt/lua/share/doc
+cp -r /opt/lua/meta/pkgconfig /opt/lua/lib
 
-make linux
-make install
 
