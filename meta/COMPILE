@@ -45,9 +45,11 @@ sed -i '/#define LUA_ROOT/s:/usr/local/:/opt/lua/:' src/luaconf.h
 make MYCFLAGS="-fPIC -I/opt/readline/include -I/opt/termcap/include" \
      MYLDFLAGS="-L/opt/readline/lib -L/opt/termcap/lib" \
      MYLIBS="-ltermcap" \
-     linux
+     linux-readline
 
 # Install
+make echo
+make install
 make TO_BIN='lua luac' \
      TO_LIB="liblua.so liblua.so.5.2 liblua.so.5.2.4" \
      INSTALL_DATA="cp -d" \
@@ -61,5 +63,17 @@ rm -rf /opt/lua/lib/lua
 mkdir /opt/lua/share/doc
 cp -v doc/*.{html,css,gif,png} /opt/lua/share/doc
 cp -r /opt/lua/meta/pkgconfig /opt/lua/lib
+
+
+# v5.4.3 编译动态库
+vim Makefile             修改安装位置
+INSTALL_TOP= /opt/lua
+vim src/Makefile         增加最后一句编译选项
+$(LUA_A): $(BASE_O)
+	$(AR) $@ $(BASE_O)
+	$(RANLIB) $@
+	$(CC) -shared -ldl -Wl,-soname,liblua$R.so -o liblua$R.so $? -lm $(MYLDFLAGS)
+make "MYCFLAGS=-fPIC" "R=5.4.3"  编译
+make install                     安装
 
 
